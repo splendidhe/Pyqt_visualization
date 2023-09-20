@@ -1,0 +1,2 @@
+# Pyqt_visualization
+使用pyqt实现数据可视化与3D模型的交互
