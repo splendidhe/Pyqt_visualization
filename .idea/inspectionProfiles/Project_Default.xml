@@ -1,0 +1,56 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredPackages">
+        <value>
+          <list size="10">
+            <item index="0" class="java.lang.String" itemvalue="darkdetect" />
+            <item index="1" class="java.lang.String" itemvalue="sphinx-markdown-tables" />
+            <item index="2" class="java.lang.String" itemvalue="colorthief" />
+            <item index="3" class="java.lang.String" itemvalue="PyQt5" />
+            <item index="4" class="java.lang.String" itemvalue="sphinx-intl" />
+            <item index="5" class="java.lang.String" itemvalue="sphinx-copybutton" />
+            <item index="6" class="java.lang.String" itemvalue="PyQt5-Frameless-Window" />
+            <item index="7" class="java.lang.String" itemvalue="sphinx-autoapi" />
+            <item index="8" class="java.lang.String" itemvalue="furo" />
+            <item index="9" class="java.lang.String" itemvalue="sphinx_design" />
+          </list>
+        </value>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="PyPep8Inspection" enabled="true" level="WEAK WARNING" enabled_by_default="true">
+      <option name="ignoredErrors">
+        <list>
+          <option value="E402" />
+          <option value="E501" />
+        </list>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="PyPep8NamingInspection" enabled="true" level="WEAK WARNING" enabled_by_default="true">
+      <option name="ignoredErrors">
+        <list>
+          <option value="N802" />
+          <option value="N806" />
+          <option value="N803" />
+          <option value="N801" />
+          <option value="N814" />
+        </list>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="PyUnresolvedReferencesInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredIdentifiers">
+        <list>
+          <option value="cv2.*" />
+          <option value="PyQt5.QtCore.Qt.*" />
+          <option value="PyQt5.QtCore.timeout.*" />
+        </list>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="SpellCheckingInspection" enabled="false" level="TYPO" enabled_by_default="false">
+      <option name="processCode" value="true" />
+      <option name="processLiterals" value="true" />
+      <option name="processComments" value="true" />
+    </inspection_tool>
+  </profile>
+</component>
