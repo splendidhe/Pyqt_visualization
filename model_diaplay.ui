@@ -467,6 +467,13 @@ margin-bottom:4px;
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QPushButton" name="pushButton">
+        <property name="text">
+         <string>连接数据库</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </widget>

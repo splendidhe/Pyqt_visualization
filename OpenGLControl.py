@@ -100,9 +100,7 @@ class GLWidget(QtOpenGL.QGLWidget):
         glRotatef(RadToDeg(self.objRobot.JVars[0]), 1.0, 0.0, 0.0)  # 旋转
         glRotatef(RadToDeg(self.objRobot.JVars[1]), 0.0, 1.0, 0.0)  # 旋转
         glRotatef(RadToDeg(self.objRobot.JVars[2]), 0.0, 0.0, 1.0)  # 旋转
-        # glRotatef(RadToDeg(self.objRobot.alpha[1]), 1.0, 0.0, 0.0)  # 旋转
         self.model.draw()  # 绘制模型
-        self.setupColor([169.0 / 255, 169.0 / 255, 169.0 / 255])    # 设置颜色
         glPopMatrix()   # 出栈 调用glPopMatrix函数恢复矩阵状态
 
     def paintGL(self):  # 绘制opengl
