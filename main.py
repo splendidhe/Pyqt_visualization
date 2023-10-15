@@ -6,6 +6,7 @@ from PyQt5.QtGui import *
 import OpenGLControl as DrawRB
 import numpy as np
 import pymysql
+import pyqtgraph as pg
 from Robot import *
 from Trajectory import *
 from Ui_datebase_link import Ui_Form
@@ -16,7 +17,6 @@ class RobotSimulator(QMainWindow):
         super(RobotSimulator, self).__init__(*args)
         # 调用父类RobotSimulator的初始化方法
         loadUi('model_diaplay.ui', self) # 加载ui文件
-        # self.sub_window = Ui_Form() # 创建子窗口
         self.timer = QTimer()   # 创建定时器对象
         self.count = 0  # 计数器
         self.timer.timeout.connect(self.timeEvent)  # 将定时器的timeout信号连接到timeEvent方法上
@@ -81,6 +81,7 @@ class DBWindow(QWidget, Ui_Form):
         self.setupUi(self)  # 设置UI
         self.isconnect = False  # 初始化数据库连接状态
         self.autoupdate = False # 初始化自动刷新状态
+        self.graphics_scene = QGraphicsScene()
 
         # 设置默认提示文本
         self.lineEdit.setPlaceholderText("database host")   # 设置数据库地址
@@ -94,9 +95,14 @@ class DBWindow(QWidget, Ui_Form):
         self.pushButton_2.clicked.connect(self.disconnectDB)    # 将pushButton_2的clicked信号连接到disconnectDB方法上
         self.pushButton_3.clicked.connect(self.readDB)  # 将pushButton_3的clicked信号连接到readDB方法上
         self.pushButton_4.clicked.connect(self.clearDB) # 将pushButton_4的clicked信号连接到clearDB方法上
+        self.pushButton_5.clicked.connect(self.manual_refreshDB) # 将pushButton_5的clicked信号连接到mutual_refreshDB方法上
+        self.pushButton_6.clicked.connect(self.cleartext) # 将pushButton_6的clicked信号连接到data_visual方法上
+        self.pushButton_7.clicked.connect(self.queryDB) # 将pushButton_7的clicked信号连接到queryDB方法上
         self.radioButton.toggled.connect(self.refreshDB)    # 将radioButton的toggled信号连接到refreshDB方法上
         self.radioButton_2.toggled.connect(self.refreshDB)  # 将radioButton_2的toggled信号连接到refreshDB方法上
-
+        self.treeView.clicked.connect(self.selectTB)    # 将treeView的clicked信号连接到selectTB方法上
+        self.graphicsView.setBackgroundBrush(QBrush(Qt.white)) # 设置graphicsView的背景颜色
+        
         # 创建 QTimer 定时器，每隔一定时间执行 update_data 函数
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_data)
@@ -130,6 +136,9 @@ class DBWindow(QWidget, Ui_Form):
             self.data = self.cursor.fetchone()
             self.plainTextEdit.appendPlainText("Database Version:%s" % self.data) # 打印数据库版本
             # print("Database Version:%s" % self.data) # 打印数据库版本
+            self.cursor.close()
+            self.conn.close()
+            self.isconnect = False
             
     def disconnectDB(self): # 断开数据库连接
         if self.isconnect:
@@ -142,12 +151,32 @@ class DBWindow(QWidget, Ui_Form):
             return
 
     def readDB(self):   # 读取数据库
-        if self.isconnect:
+        if not self.isconnect:
+            self.isconnect = True
+            # 获取文本框中的内容
+            self.host = self.lineEdit.text()    # 获取数据库地址
+            self.table = self.lineEdit_4.text()  # 获取数据表名
+            self.password = self.lineEdit_2.text()  # 获取密码
+            self.database = self.lineEdit_3.text()  # 获取数据库名
+            # 创建数据库连接
+            self.conn = pymysql.connect(
+                host=self.host,         # 连接主机, 默认127.0.0.1 
+                user='root',            # 用户名
+                passwd=self.password,   # 密码
+                port=3306,              # 端口，默认为3306
+                db=self.database,       # 数据库名称
+                charset='utf8'          # 字符编码
+            )
+            # 生成游标对象 cursor
+            self.cursor = self.conn.cursor()
             self.table = self.lineEdit_4.text()  # 获取数据表名
             # 数据库查询数据
             self.sql = "SELECT * FROM " + self.table + "" # 查询数据表中的所有数据
             self.cursor.execute(self.sql) # 返回值是查询到的数据数量
             self.data = self.cursor.fetchall() # 查询全部数据
+            self.cursor.close() # 关闭游标
+            self.conn.close()  # 关闭数据库连接
+            self.isconnect = False # 设置数据库连接状态
             # 创建数据模型
             self.model = QStandardItemModel(self)
             self.model.setColumnCount(len(self.data[0]))
@@ -163,17 +192,36 @@ class DBWindow(QWidget, Ui_Form):
             # print(self.data)    # 打印查询到的数据
             self.plainTextEdit.appendPlainText(str(self.data)) # 显示查询到的数据
         else:
-            self.plainTextEdit.appendPlainText("Database has disconnected!")
+            self.plainTextEdit.appendPlainText("Database has connected!")
             return
     
     #  定时器调用的函数，用于更新数据
     def update_data(self):
-        if self.isconnect & self.autoupdate:
+        if (self.isconnect == False) & self.autoupdate:
+            self.isconnect = True  # 设置数据库连接状态
+            # 获取文本框中的内容
+            self.host = self.lineEdit.text()    # 获取数据库地址
+            self.table = self.lineEdit_4.text()  # 获取数据表名
+            self.password = self.lineEdit_2.text()  # 获取密码
+            self.database = self.lineEdit_3.text()  # 获取数据库名
+            # 创建数据库连接
+            self.conn = pymysql.connect(
+                host = self.host,         # 连接主机, 默认127.0.0.1 
+                user = 'root',            # 用户名
+                passwd = self.password,   # 密码
+                port = 3306,              # 端口，默认为3306
+                db = self.database,       # 数据库名称
+                charset = 'utf8'          # 字符编码
+            )
+            self.cursor = self.conn.cursor() # 生成游标对象 cursor
             self.table = self.lineEdit_4.text()  # 获取数据表名
             # 数据库查询数据
             self.sql = "SELECT * FROM " + self.table + "" # 查询数据表中的所有数据
             self.cursor.execute(self.sql) # 返回值是查询到的数据数量
             self.data = self.cursor.fetchall() # 查询全部数据
+            self.cursor.close() # 关闭游标
+            self.conn.close()   # 关闭数据库连接
+            self.isconnect = False  # 设置数据库连接状态
             # 创建数据模型
             self.model = QStandardItemModel(self)
             self.model.setColumnCount(len(self.data[0]))
@@ -205,6 +253,131 @@ class DBWindow(QWidget, Ui_Form):
         elif self.radioButton_2.isChecked():
             self.autoupdate = True # 设置自动刷新状态
             self.plainTextEdit.appendPlainText("Enable Auto Refresh!")
+    
+    # 手动刷新tableview中的数据
+    def manual_refreshDB(self):
+        self.readDB()
+        self.plainTextEdit.appendPlainText("Database has refreshed!")
+    
+    # 清除文本框中的数据
+    def cleartext(self):
+        self.plainTextEdit.clear()
+
+    # 查询数据库
+    def queryDB(self):
+        if not self.isconnect:
+            self.isconnect = True  # 设置数据库连接状态
+            # 获取文本框中的内容
+            self.host = self.lineEdit.text()    # 获取数据库地址
+            self.table = self.lineEdit_4.text()  # 获取数据表名
+            self.password = self.lineEdit_2.text()  # 获取密码
+            self.database = self.lineEdit_3.text()  # 获取数据库名
+            # 创建数据库连接
+            self.conn = pymysql.connect(
+                host=self.host,         # 连接主机, 默认127.0.0.1 
+                user='root',            # 用户名
+                passwd=self.password,   # 密码
+                port=3306,              # 端口，默认为3306
+                db=self.database,       # 数据库名称
+                charset='utf8'          # 字符编码
+            )
+            self.cursor = self.conn.cursor() # 生成游标对象 cursor
+            self.cursor.execute("SHOW TABLES") # 查询数据库中的所有数据表
+            self.tables = self.cursor.fetchall() # 查询全部数据
+            self.treemodel = QStandardItemModel()   # 创建数据模型
+            self.treeView.setModel(self.treemodel)  # 设置数据模型到 QTreeView
+            # 创建根节点
+            self.root_item = self.treemodel.invisibleRootItem()
+            for table in self.tables:
+                self.table_name = table[0]
+                # 创建数据表节点
+                self.table_item = QStandardItem(self.table_name)
+                self.root_item.appendRow(self.table_item)
+                # 查询数据表中的列名称
+                self.cursor.execute(f"SHOW COLUMNS FROM {self.table_name}")
+                self.columns = self.cursor.fetchall()
+                # 创建列名称节点
+                for column in self.columns:
+                    column_name = column[0]
+                    column_item = QStandardItem(column_name)
+                    self.table_item.appendRow(column_item)
+            
+            self.cursor.close() # 关闭数据库连接释放资源
+            self.conn.close()
+            self.isconnect = False
+
+    # # 筛选treeView选中的数据表和列名称
+    # def selectTB(self):
+    #     self.selected_indexes = self.treeView.selectedIndexes()
+    #     self.selected_columns = [index.column() for index in self.selected_indexes]
+    #     self.unique_columns = list(set(self.selected_columns))
+    #     if len(self.unique_columns) == 1:
+    #         column_index = self.unique_columns[0]
+    #         self.column_name = self.treeView.model().headerData(column_index, orientation=1)
+    #         self.table_name = self.treeView.model().data(self.selected_indexes[0].siblingAtColumn(0))
+    #         self.plot_data(self.table_name, self.column_name)
+    def getSelectedPath(self, index):
+        # 获取选中项的文本
+        text = self.treeView.model().data(index)
+
+        # 如果选中项没有父项，则返回该项的文本
+        if not index.parent().isValid():
+            return [text]
+
+        # 递归地向上遍历，获取每一级目录的名称
+        parent_texts = self.getSelectedPath(index.parent())
+        parent_texts.append(text)
+        return parent_texts
+
+    # 绘制数据图
+    def selectTB(self, index):
+        # 获取treeview中选中的表名和列名
+        # 获取选中项的文本
+        text = self.treeView.model().data(index)
+        # 如果选中项没有父项，则返回该项的文本
+        if not index.parent().isValid():
+            return [text]
+        # 递归地向上遍历，获取每一级目录的名称
+        parent_texts = self.getSelectedPath(index.parent())
+        parent_texts.append(text)
+        self.table_name = parent_texts[0]
+        self.column_name = parent_texts[1]
+        if not self.isconnect:
+            self.isconnect = True  # 设置数据库连接状态
+            # 获取文本框中的内容
+            self.host = self.lineEdit.text()    # 获取数据库地址
+            self.table = self.lineEdit_4.text()  # 获取数据表名
+            self.password = self.lineEdit_2.text()  # 获取密码
+            self.database = self.lineEdit_3.text()  # 获取数据库名
+            # 创建数据库连接
+            self.conn = pymysql.connect(
+                host=self.host,         # 连接主机, 默认127.0.0.1 
+                user='root',            # 用户名
+                passwd=self.password,   # 密码
+                port=3306,              # 端口，默认为3306
+                db=self.database,       # 数据库名称
+                charset='utf8'          # 字符编码
+            )
+            self.cursor = self.conn.cursor() # 生成游标对象 cursor
+            # 查询数据库中对应列的数据
+            self.query = f"SELECT {self.column_name} FROM {self.table_name}"
+            self.cursor.execute(self.query)
+            self.graph_data = self.cursor.fetchall()
+
+            # 将数据转换为列表
+            data_list = [row[0] for row in self.graph_data]
+
+            # 清空视图内容
+            self.graphics_scene.clear()
+
+            # 绘制曲线图
+            self.plot_widget = pg.PlotWidget()
+            self.plot_widget.plot(data_list)
+            self.graphics_scene.addWidget(self.plot_widget)
+            self.graphicsView.setScene(self.graphics_scene)
+            self.isconnect = False
+            self.cursor.close() # 关闭数据库连接释放资源
+            self.conn.close()
 
 # 主函数
 if __name__ == '__main__':
