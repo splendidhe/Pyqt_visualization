@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
-        Form.resize(1200, 800)
+        Form.resize(1212, 845)
         Form.setSizeIncrement(QtCore.QSize(50, 0))
         font = QtGui.QFont()
         font.setPointSize(12)
@@ -120,7 +120,7 @@ class Ui_Form(object):
         self.pushButton_2.setObjectName("pushButton_2")
         self.horizontalLayout.addWidget(self.pushButton_2)
         self.plainTextEdit = QtWidgets.QPlainTextEdit(Form)
-        self.plainTextEdit.setGeometry(QtCore.QRect(790, 360, 381, 421))
+        self.plainTextEdit.setGeometry(QtCore.QRect(790, 360, 381, 471))
         font = QtGui.QFont()
         font.setFamily("宋体")
         font.setPointSize(12)
@@ -174,20 +174,6 @@ class Ui_Form(object):
         self.gridLayout = QtWidgets.QGridLayout(self.gridLayoutWidget)
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
         self.gridLayout.setObjectName("gridLayout")
-        self.pushButton_5 = QtWidgets.QPushButton(self.gridLayoutWidget)
-        font = QtGui.QFont()
-        font.setFamily("宋体")
-        font.setPointSize(14)
-        self.pushButton_5.setFont(font)
-        self.pushButton_5.setObjectName("pushButton_5")
-        self.gridLayout.addWidget(self.pushButton_5, 1, 0, 1, 1)
-        self.pushButton_6 = QtWidgets.QPushButton(self.gridLayoutWidget)
-        font = QtGui.QFont()
-        font.setFamily("宋体")
-        font.setPointSize(14)
-        self.pushButton_6.setFont(font)
-        self.pushButton_6.setObjectName("pushButton_6")
-        self.gridLayout.addWidget(self.pushButton_6, 1, 1, 1, 1)
         self.pushButton_3 = QtWidgets.QPushButton(self.gridLayoutWidget)
         font = QtGui.QFont()
         font.setFamily("宋体")
@@ -202,6 +188,13 @@ class Ui_Form(object):
         self.pushButton_4.setFont(font)
         self.pushButton_4.setObjectName("pushButton_4")
         self.gridLayout.addWidget(self.pushButton_4, 0, 1, 1, 1)
+        self.pushButton_6 = QtWidgets.QPushButton(self.gridLayoutWidget)
+        font = QtGui.QFont()
+        font.setFamily("宋体")
+        font.setPointSize(14)
+        self.pushButton_6.setFont(font)
+        self.pushButton_6.setObjectName("pushButton_6")
+        self.gridLayout.addWidget(self.pushButton_6, 1, 1, 1, 1)
         self.pushButton_7 = QtWidgets.QPushButton(self.gridLayoutWidget)
         font = QtGui.QFont()
         font.setFamily("宋体")
@@ -216,19 +209,52 @@ class Ui_Form(object):
         self.pushButton_8.setFont(font)
         self.pushButton_8.setObjectName("pushButton_8")
         self.gridLayout.addWidget(self.pushButton_8, 2, 1, 1, 1)
+        self.pushButton_5 = QtWidgets.QPushButton(self.gridLayoutWidget)
+        font = QtGui.QFont()
+        font.setFamily("宋体")
+        font.setPointSize(14)
+        self.pushButton_5.setFont(font)
+        self.pushButton_5.setObjectName("pushButton_5")
+        self.gridLayout.addWidget(self.pushButton_5, 1, 0, 1, 1)
+        self.checkBox = QtWidgets.QCheckBox(self.gridLayoutWidget)
+        font = QtGui.QFont()
+        font.setFamily("宋体")
+        font.setPointSize(14)
+        self.checkBox.setFont(font)
+        self.checkBox.setChecked(True)
+        self.checkBox.setObjectName("checkBox")
+        self.gridLayout.addWidget(self.checkBox, 3, 0, 1, 1)
         self.treeView = QtWidgets.QTreeView(Form)
-        self.treeView.setGeometry(QtCore.QRect(10, 290, 281, 491))
+        self.treeView.setGeometry(QtCore.QRect(10, 290, 281, 541))
         self.treeView.setStyleSheet("QTreeView::header::section {\n"
 "    height: 0px;  /* 设置高度为0，隐藏头部 */\n"
 "    border: none; /* 去除边框 */\n"
 "    padding: 0px; /* 去除内边距 */\n"
 "    margin: 0px; /* 去除外边距 */\n"
 "}\n"
+"ui->treeWidget->header()->setVisible(false);\n"
+"QTreeView::item {\n"
+"    border: none;  /* 去除节点边框 */\n"
+"    padding: 3px;  /* 设置节点间距 */\n"
+"    font-weight: normal;  /* 设置字体为 normal */\n"
+"}\n"
+"QTreeView::item:hover {\n"
+"    background-color: #e6e6e6;  /* 设置鼠标悬停时的背景色 */\n"
+"}\n"
+"QTreeView::item:selected {\n"
+"    background-color: #b2d9ff;  /* 设置选中时的背景色 */\n"
+"    color: #ffffff;  /* 设置选中时的字体颜色 */\n"
+"}\n"
 "")
         self.treeView.setObjectName("treeView")
         self.graphicsView = QtWidgets.QGraphicsView(Form)
-        self.graphicsView.setGeometry(QtCore.QRect(300, 290, 451, 491))
+        self.graphicsView.setGeometry(QtCore.QRect(300, 570, 451, 261))
+        self.graphicsView.setStyleSheet("QGraphicsView { border: 0px solid red; }\n"
+"QGraphicsLineItem { pen: 3px solid green; }")
         self.graphicsView.setObjectName("graphicsView")
+        self.openGLWidget = QtWidgets.QOpenGLWidget(Form)
+        self.openGLWidget.setGeometry(QtCore.QRect(300, 290, 451, 271))
+        self.openGLWidget.setObjectName("openGLWidget")
 
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)
@@ -244,9 +270,10 @@ class Ui_Form(object):
         self.radioButton.setText(_translate("Form", "手动刷新"))
         self.radioButton_2.setText(_translate("Form", "自动刷新"))
         self.label_4.setText(_translate("Form", "数据表："))
-        self.pushButton_5.setText(_translate("Form", "刷新数据"))
-        self.pushButton_6.setText(_translate("Form", "清除打印"))
         self.pushButton_3.setText(_translate("Form", "查询数据表"))
         self.pushButton_4.setText(_translate("Form", "清除显示"))
+        self.pushButton_6.setText(_translate("Form", "清除打印"))
         self.pushButton_7.setText(_translate("Form", "查询数据库"))
-        self.pushButton_8.setText(_translate("Form", "图像绘制"))
+        self.pushButton_8.setText(_translate("Form", "清除图像"))
+        self.pushButton_5.setText(_translate("Form", "刷新数据"))
+        self.checkBox.setText(_translate("Form", "显示3D网格"))

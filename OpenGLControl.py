@@ -90,7 +90,7 @@ class GLWidget(QtOpenGL.QGLWidget):
         glEnable(GL_DEPTH_TEST) # 启用深度测试
         glEnable(GL_NORMALIZE)  # 启用法向量归一化
         # glEnable(GL_BLEND);   # 启用混合
-        glClearColor(0.0, 0.0, 0.0, 1.0)    # 设置清除颜色缓存时的颜色
+        glClearColor(228, 228, 228, 1.0)    # 设置清除颜色缓存时的颜色
 
     def drawGL(self):
         glPushMatrix()  # 压栈 调用glPushMatrix函数保存当前矩阵状态
