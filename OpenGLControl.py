@@ -24,7 +24,7 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.yTran = 0  # y轴平移
         self.isDrawGrid = True  # 是否绘制网格
         print("Loading stl files...")
-        self.model = loader('model/little_ship.STL') # 加载stl文件
+        self.model = loader('E:\Python_Environment\PyCharm\pycharm_code\Pyqt\model\little_ship.STL') # 加载stl文件
         print("All done.")
 
         self.listPoints = np.array([[0, 0, 0]]) 
