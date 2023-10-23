@@ -6,5 +6,5 @@
 
 ## 打包命令
 ```
-pyinstaller -w -i .\GUI_icon\main_icon.ico .\main.py
+pyinstaller -w -i .\GUI_icon\main_icon.ico --add-data ".\model\little_ship.STL;." .\main.py
 ```

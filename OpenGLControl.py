@@ -2,7 +2,8 @@ from OpenGL import GLU
 from PyQt5 import QtCore
 from PyQt5 import QtOpenGL
 from numpy import arange
-
+import os
+import sys
 # from ConfigRobot import *
 from GlobalFunc import *
 from STLFile import *
@@ -24,7 +25,14 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.yTran = 0  # y轴平移
         self.isDrawGrid = True  # 是否绘制网格
         print("Loading stl files...")
-        self.model = loader('E:\Python_Environment\PyCharm\pycharm_code\Pyqt\model\little_ship.STL') # 加载stl文件
+        if getattr(sys, 'frozen', False):
+            # 如果程序是被 PyInstaller 打包的
+            bundle_dir = sys._MEIPASS
+        else:
+            # 如果程序是直接运行的
+            bundle_dir = os.path.dirname(os.path.abspath(__file__))
+        stl_file_path = os.path.join(bundle_dir, 'model', 'little_ship.STL')
+        self.model = loader(stl_file_path) # 加载stl文件
         print("All done.")
 
         self.listPoints = np.array([[0, 0, 0]]) 
