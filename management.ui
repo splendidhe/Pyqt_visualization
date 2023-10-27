@@ -17,7 +17,11 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Visualization</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="GUI_icon/image.qrc">
+    <normaloff>:/logo/main_icon.png</normaloff>:/logo/main_icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -307,6 +311,16 @@
         </property>
         <property name="text">
          <string>连接</string>
+        </property>
+        <property name="icon">
+         <iconset resource="GUI_icon/image.qrc">
+          <normaloff>:/icon/congratulation.jpg</normaloff>:/icon/congratulation.jpg</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>20</width>
+          <height>20</height>
+         </size>
         </property>
        </widget>
       </item>
@@ -635,8 +649,11 @@
           <height>16777215</height>
          </size>
         </property>
+        <property name="styleSheet">
+         <string notr="true"/>
+        </property>
         <property name="currentIndex">
-         <number>1</number>
+         <number>2</number>
         </property>
         <widget class="QWidget" name="page">
          <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -1212,7 +1229,7 @@
              <widget class="QPushButton" name="pushButton_12">
               <property name="minimumSize">
                <size>
-                <width>100</width>
+                <width>110</width>
                 <height>30</height>
                </size>
               </property>
@@ -1230,6 +1247,16 @@
               </property>
               <property name="text">
                <string>刷新</string>
+              </property>
+              <property name="icon">
+               <iconset resource="GUI_icon/image.qrc">
+                <normaloff>:/icon/upper.png</normaloff>:/icon/upper.png</iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>25</width>
+                <height>25</height>
+               </size>
               </property>
              </widget>
             </item>
@@ -1945,6 +1972,9 @@
               <height>900</height>
              </size>
             </property>
+            <property name="styleSheet">
+             <string notr="true">border-image: url(:/background/nural_net.png);</string>
+            </property>
            </widget>
           </item>
          </layout>
@@ -2168,6 +2198,9 @@
               <pointsize>14</pointsize>
              </font>
             </property>
+            <property name="styleSheet">
+             <string notr="true">border-image: url(:/background/nural_net.png);</string>
+            </property>
             <property name="text">
              <string/>
             </property>
@@ -2200,11 +2233,13 @@
   <tabstop>pushButton_3</tabstop>
   <tabstop>pushButton_4</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="GUI_icon/image.qrc"/>
+ </resources>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroup_2"/>
   <buttongroup name="buttonGroup"/>
   <buttongroup name="buttonGroup_3"/>
+  <buttongroup name="buttonGroup_2"/>
  </buttongroups>
 </ui>
