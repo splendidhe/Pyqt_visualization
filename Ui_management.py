@@ -776,4 +776,4 @@ class Ui_MainWindow(object):
         self.pushButton_10.setText(_translate("MainWindow", "终止画面"))
         self.label_9.setText(_translate("MainWindow", "帧率："))
 from PyQt5 import QtWebEngineWidgets
-import image_rc
+import GUI_icon.image_rc
