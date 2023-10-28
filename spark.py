@@ -20,6 +20,10 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         self.isconnect = False  # 初始化数据库连接状态
         self.autoupdate = False # 初始化自动刷新状态
         self.graphics_scene = QGraphicsScene()
+        self.graphics_scene_1 = QGraphicsScene()
+        self.graphics_scene_2 = QGraphicsScene()
+        self.graphics_scene_3 = QGraphicsScene()
+        self.graphics_scene_4 = QGraphicsScene()        
         self.timer = QTimer()   # 创建定时器对象
         self.count = 0  # 计数器
         self.timer.timeout.connect(self.timeEvent)  # 将定时器的timeout信号连接到timeEvent方法上
@@ -47,6 +51,7 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         self.radioButton_3.toggled.connect(self.Pos_curve)
         self.radioButton_4.toggled.connect(self.Pos_curve)
         self.radioButton_5.toggled.connect(self.Pos_curve)
+        self.pushButton_6.clicked.connect(self.Matrix_curve)
 
         # 创建 QTimer 定时器，每隔一定时间执行 update_data 函数
         self.timer = QTimer(self)
@@ -55,6 +60,103 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         self.timer = QTimer(self)   # 创建定时器对象
         self.timer.timeout.connect(self.Gesture)
         self.timer.start(5000)  # 设置时间间隔为5秒（单位：毫秒）
+
+    def getSelectedPath(self, index):
+        # 获取选中项的文本
+        text = self.treeView.model().data(index)
+
+        # 如果选中项没有父项，则返回该项的文本
+        if not index.parent().isValid():
+            return [text]
+
+        # 递归地向上遍历，获取每一级目录的名称
+        parent_texts = self.getSelectedPath(index.parent())
+        parent_texts.append(text)
+        return parent_texts
+
+    # 绘图矩阵
+    def Matrix_curve(self):
+        self.max_rows = 100  # 返回最多记录数
+        # 获取treeview中选中的表名和列名
+        # 获取当前选中项的索引
+        self.selection_model = self.treeView.selectionModel()
+        index = self.selection_model.currentIndex()
+        # 获取选中项的文本
+        text = self.treeView.model().data(index)
+        # 如果选中项没有父项，则返回该项的文本
+        if not index.parent().isValid():
+            return [text]
+        # 递归地向上遍历，获取每一级目录的名称
+        parent_texts = self.getSelectedPath(index.parent())
+        parent_texts.append(text)
+        self.table_name = parent_texts[0]
+        self.column_name = parent_texts[1]
+        if not self.isconnect:
+            self.isconnect = True  # 设置数据库连接状态
+            # 获取文本框中的内容
+            self.host = self.lineEdit.text()    # 获取数据库地址
+            self.database = self.lineEdit_2.text()  # 获取数据库名
+            self.password = self.lineEdit_3.text()  # 获取密码
+            # 创建数据库连接
+            self.conn = pymysql.connect(
+                host = self.host,         # 连接主机, 默认127.0.0.1 
+                user = 'root',            # 用户名
+                passwd = self.password,   # 密码
+                port = 3306,              # 端口，默认为3306
+                db = self.database,       # 数据库名称
+                charset = 'utf8'          # 字符编码
+            )
+            self.cursor = self.conn.cursor() # 生成游标对象 cursor
+            # 查询数据库中对应列的数据
+            self.query = f"SELECT {self.column_name} FROM {self.table_name} LIMIT {self.max_rows}"
+            self.cursor.execute(self.query)
+            self.graph_data = self.cursor.fetchall()
+            self.isconnect = False # 关闭数据库连接释放资源
+            self.cursor.close() 
+            self.conn.close()
+            # 将数据转换为列表
+            self.data_list = [row[0] for row in self.graph_data]
+
+            if self.radioButton_7.isChecked() & self.radioButton_10.isChecked():  # 左上折线图
+                self.plot_widget_1 = pg.PlotWidget()
+                self.graphics_scene_1.clear()
+                self.leftup = self.plot_widget_1.plot(self.data_list)
+                self.pen = pg.mkPen(color='#f38b00', width=2)
+                self.leftup.setPen(self.pen)
+                self.plot_widget_1.setBackground('#ffffff') # 设置背景颜色
+                self.graphics_scene_1.addWidget(self.plot_widget_1)
+                self.graphicsView_2.setScene(self.graphics_scene_1)
+            
+            if self.radioButton_7.isChecked() & self.radioButton_11.isChecked():  # 右上折线图
+                self.plot_widget_2 = pg.PlotWidget()
+                self.graphics_scene_2.clear()
+                self.rightup = self.plot_widget_2.plot(self.data_list)
+                self.pen = pg.mkPen(color='#f38b00', width=2)
+                self.rightup.setPen(self.pen)
+                self.plot_widget_2.setBackground('#ffffff') # 设置背景颜色
+                self.graphics_scene_2.addWidget(self.plot_widget_2)
+                self.graphicsView_3.setScene(self.graphics_scene_2)
+            
+            if self.radioButton_7.isChecked() & self.radioButton_12.isChecked():  # 左下折线图
+                self.plot_widget_3 = pg.PlotWidget()
+                self.graphics_scene_3.clear()
+                self.leftdown = self.plot_widget_3.plot(self.data_list)
+                self.pen = pg.mkPen(color='#f38b00', width=2)
+                self.leftdown.setPen(self.pen)
+                self.plot_widget_3.setBackground('#ffffff') # 设置背景颜色
+                self.graphics_scene_3.addWidget(self.plot_widget_3)
+                self.graphicsView_4.setScene(self.graphics_scene_3)
+
+            if self.radioButton_7.isChecked() & self.radioButton_13.isChecked():  # 右下折线图
+                self.plot_widget_4 = pg.PlotWidget()
+                self.graphics_scene_4.clear()
+                self.rightdown = self.plot_widget_4.plot(self.data_list)
+                self.pen = pg.mkPen(color='#f38b00', width=2)
+                self.rightdown.setPen(self.pen)
+                self.plot_widget_4.setBackground('#ffffff')
+                self.graphics_scene_4.addWidget(self.plot_widget_4)
+                self.graphicsView_5.setScene(self.graphics_scene_4)
+
 
     # XYZ坐标曲线
     def Pos_curve(self):
@@ -124,8 +226,8 @@ class MyWindow(QMainWindow, Ui_MainWindow):
                 self.curve_yaw.setVisible(False)
 
             self.plot_widget.setBackground('#ffffff') # 设置背景颜色
-            self.graphics_scene.addWidget(self.plot_widget)
-            self.graphicsView.setScene(self.graphics_scene)
+            self.graphics_scene.addWidget(self.plot_widget) # 将PlotWidget添加到QGraphicsScene中
+            self.graphicsView.setScene(self.graphics_scene) # 将QGraphicsScene添加到QGraphicsView中
             # 关闭数据库连接释放资源
             self.isconnect = False
             self.cursor.close() 
@@ -169,8 +271,6 @@ class MyWindow(QMainWindow, Ui_MainWindow):
                     self.model.setItem(row_num, col_num, item)
             # 设置数据模型到 QTableView
             self.tableView.setModel(self.model)
-
-    
     
     #  定时器调用的函数，用于更新3D模型姿态
     def Gesture(self):
