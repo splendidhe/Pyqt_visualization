@@ -1,4 +1,5 @@
 from OpenGL.GLUT import *
+from PyQt5 import QtCore
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.uic import *
@@ -42,6 +43,10 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         self.radioButton.toggled.connect(self.RefreshDB)
         self.radioButton_2.toggled.connect(self.RefreshDB)
         self.checkBox.stateChanged.connect(self.ViewGrid)
+        self.buttonGroup_3.setExclusive(False)
+        self.radioButton_3.toggled.connect(self.Pos_curve)
+        self.radioButton_4.toggled.connect(self.Pos_curve)
+        self.radioButton_5.toggled.connect(self.Pos_curve)
 
         # 创建 QTimer 定时器，每隔一定时间执行 update_data 函数
         self.timer = QTimer(self)
@@ -50,6 +55,81 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         self.timer = QTimer(self)   # 创建定时器对象
         self.timer.timeout.connect(self.Gesture)
         self.timer.start(5000)  # 设置时间间隔为5秒（单位：毫秒）
+
+    # XYZ坐标曲线
+    def Pos_curve(self):
+        if (self.isconnect == False) & self.autoupdate:
+            self.isconnect = True  # 设置数据库连接状态
+            # 获取文本框中的内容
+            self.host = self.lineEdit.text()    # 获取数据库地址
+            self.database = self.lineEdit_2.text()  # 获取数据库名
+            self.password = self.lineEdit_3.text()  # 获取密码
+            # 创建数据库连接
+            self.conn = pymysql.connect(
+                host = self.host,         # 连接主机, 默认127.0.0.1 
+                user = 'root',            # 用户名
+                passwd = self.password,   # 密码
+                port = 3306,              # 端口，默认为3306
+                db = self.database,       # 数据库名称
+                charset = 'utf8'          # 字符编码
+            )
+            self.cursor = self.conn.cursor() # 生成游标对象 cursor
+            # 执行查询语句
+            self.query = "SELECT pitch FROM ship_state LIMIT 100"
+            self.cursor.execute(self.query)
+            self.graph_data = self.cursor.fetchall()
+            # 将数据转换为列表
+            pitch_list = [row[0] for row in self.graph_data]
+            # 执行查询语句
+            self.cursor = self.conn.cursor()
+            self.query = "SELECT roll FROM ship_state LIMIT 100"
+            self.cursor.execute(self.query)
+            self.graph_data = self.cursor.fetchall()
+            roll_list = [row[0] for row in self.graph_data]
+            # 执行查询语句
+            self.cursor = self.conn.cursor()
+            self.query = "SELECT yaw FROM ship_state LIMIT 100"
+            self.cursor.execute(self.query)
+            self.graph_data = self.cursor.fetchall()
+            yaw_list = [row[0] for row in self.graph_data]
+            # 清空视图内容
+            self.graphics_scene.clear()
+            # 绘制曲线图
+            self.plot_widget = pg.PlotWidget()
+            # 创建三条曲线并添加到PlotWidget中
+            self.curve_pitch = self.plot_widget.plot(pitch_list, stepMode='left', antialias=False)
+            self.pen = pg.mkPen(color='#f38b00', width=2)
+            self.curve_pitch.setPen(self.pen)
+            self.curve_roll = self.plot_widget.plot(roll_list, stepMode='left', antialias=False)
+            self.pen = pg.mkPen(color='#32874f', width=2)
+            self.curve_roll.setPen(self.pen)
+            self.curve_yaw = self.plot_widget.plot(yaw_list, stepMode='left', antialias=False)
+            self.pen = pg.mkPen(color='#9a86fd', width=2)
+            self.curve_yaw.setPen(self.pen)
+            
+            
+            if self.radioButton_3.isChecked():
+                self.curve_pitch.setVisible(True)
+            else :
+                self.curve_pitch.setVisible(False)
+
+            if self.radioButton_4.isChecked():
+                self.curve_roll.setVisible(True)
+            else :
+                self.curve_roll.setVisible(False)
+
+            if self.radioButton_5.isChecked():
+                self.curve_yaw.setVisible(True)
+            else :
+                self.curve_yaw.setVisible(False)
+
+            self.plot_widget.setBackground('#ffffff') # 设置背景颜色
+            self.graphics_scene.addWidget(self.plot_widget)
+            self.graphicsView.setScene(self.graphics_scene)
+            # 关闭数据库连接释放资源
+            self.isconnect = False
+            self.cursor.close() 
+            self.conn.close()
 
     #  定时器调用的函数，用于更新数据
     def Update_data(self):
@@ -89,6 +169,8 @@ class MyWindow(QMainWindow, Ui_MainWindow):
                     self.model.setItem(row_num, col_num, item)
             # 设置数据模型到 QTableView
             self.tableView.setModel(self.model)
+
+    
     
     #  定时器调用的函数，用于更新3D模型姿态
     def Gesture(self):
