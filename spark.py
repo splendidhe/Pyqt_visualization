@@ -1,5 +1,5 @@
 from OpenGL.GLUT import *
-from PyQt5 import QtCore
+from PyQt5 import QtCore, QtGui
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.uic import *
@@ -11,6 +11,124 @@ import pyqtgraph as pg
 from Robot import *
 from Trajectory import *
 from Ui_management import Ui_MainWindow
+import hmac
+from hashlib import sha1
+import time
+from paho.mqtt.client import MQTT_LOG_INFO, MQTT_LOG_NOTICE, MQTT_LOG_WARNING, MQTT_LOG_ERR, MQTT_LOG_DEBUG
+from paho.mqtt import client as mqtt
+import json
+import random
+import threading
+import cv2
+import base64
+
+# 设备证书（ProductKey、DeviceName和DeviceSecret），三元组
+productKey = 'a1YGTqzEyRl'
+deviceName = 'vedio2'
+deviceSecret = '4da59f51dde911996ac6f34544a6e013'
+
+# ClientId Username和 Password 签名模式下的设置方法，参考文档 https://help.aliyun.com/document_detail/73742.html?spm=a2c4g.11186623.6.614.c92e3d45d80aqG
+# MQTT - 合成connect报文中使用的 ClientID、Username、Password
+mqttClientId = deviceName + '|securemode=3,signmethod=hmacsha1|'
+mqttUsername = deviceName + '&' + productKey
+content = 'clientId' + deviceName + 'deviceName' + deviceName + 'productKey' + productKey
+mqttPassword = hmac.new(deviceSecret.encode(), content.encode(), sha1).hexdigest()
+
+# 接入的服务器地址
+regionId = 'cn-shanghai'
+# MQTT 接入点域名
+brokerUrl = productKey + '.iot-as-mqtt.' + regionId + '.aliyuncs.com'
+# Topic，post，客户端向服务器上报消息
+topic_post = '/sys/' + productKey + '/' + deviceName + '/thing/event/property/post'
+# Topic，set，服务器向客户端下发消息
+topic_set = '/sys/' + productKey + '/' + deviceName + '/thing/service/property/set'
+# 物模型名称的前缀（去除后缀的数字）
+modelName = 'image'
+# 建立mqtt连接对象
+client = mqtt.Client(mqttClientId, protocol=mqtt.MQTTv311, clean_session=True)
+
+vedio_flow = ""
+decode_img = "" 
+
+# 下发的设置报文示例：{"method":"thing.event.property.post","params":{"image":"1234567890"}}
+# json合成上报开关状态的报文
+def json_switch_set(data):
+    switch_info = {}
+    switch_data = json.loads(json.dumps(switch_info))
+    switch_data['method'] = '/thing/event/property/post'
+    switch_data['id'] = random.randint(100000000,999999999) # 随机数即可，用于让服务器区分开报文
+    switch_status = {modelName : data}
+    switch_data['params'] = switch_status
+    return json.dumps(switch_data, ensure_ascii=False)
+
+# 日志打印函数
+def on_log(client, userdata, level, buf): 
+    if level == MQTT_LOG_INFO:
+        head = 'INFO'
+    elif level == MQTT_LOG_NOTICE:
+        head = 'NOTICE'
+    elif level == MQTT_LOG_WARNING:
+        head = 'WARN'
+    elif level == MQTT_LOG_ERR:
+        head = 'ERR'
+    elif level == MQTT_LOG_DEBUG:
+        head = 'DEBUG'
+    else:
+        head = level
+    # print('%s: %s' % (head, buf))
+# MQTT成功连接到服务器的回调处理函数
+def on_connect(client, userdata, flags, rc):
+    # print('Connected with result code ' + str(rc))
+    # 与MQTT服务器连接成功，之后订阅主题
+    # client.subscribe(topic_post, qos=0)
+    client.subscribe(topic_set, qos=0)
+    # 向服务器发布测试消息
+    # client.publish(topic_post, payload='test msg', qos=0)
+
+# MQTT接收到服务器消息的回调处理函数
+def on_message(client, userdata, msg):
+    global decode_img
+    # print(msg.payload)
+    # # 解析JSON数据
+    data = json.loads(msg.payload)
+    # 提取"value"字段的值 items":{"image":{"time":1698592846892,"value"
+    value = data['items']['image']['value']
+    print(value)
+    decoded_data = base64.b64decode(value)
+    # 将二进制数据解码为图像
+    image = cv2.imdecode(np.frombuffer(decoded_data, np.uint8), cv2.IMREAD_COLOR)
+    print(decoded_data)
+    decode_img = image
+    resized = cv2.resize(image, (400, 300), interpolation=cv2.INTER_AREA)
+    cv2.imshow("Decoded Image", resized)
+    cv2.waitKey(1)
+    # cv2.destroyAllWindows()
+    # # print('recv:', msg.topic + ' ' + str(msg.payload))
+    # # print(msg.payload)
+    pass
+
+def on_disconnect(client, userdata, rc):
+    if rc != 0:
+        print('Unexpected disconnection %s' % rc)
+
+class mqtt_connect_aliyun_iot_platform(QThread):
+    client.on_log = on_log
+    client.on_connect = on_connect
+    client.on_message = on_message
+    client.on_disconnect = on_disconnect
+    client.username_pw_set(mqttUsername, mqttPassword)
+    print('clientId:', mqttClientId)
+    print('userName:', mqttUsername)
+    print('password:', mqttPassword)
+    print('brokerUrl:', brokerUrl)
+    # ssl设置，并且port=8883
+    # client.tls_set(ca_certs=None, certfile=None, keyfile=None, cert_reqs=ssl.CERT_REQUIRED, tls_version=ssl.PROTOCOL_TLS, ciphers=None)
+    try:
+        client.connect(brokerUrl, 1883, 60)
+    except:
+        print('阿里云物联网平台MQTT服务器连接错误,请检查设备证书三元组、及接入点的域名！')
+    client.loop_start()
+
 
 # 主窗口类
 class MyWindow(QMainWindow, Ui_MainWindow):
@@ -19,6 +137,7 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)  # 设置UI
         self.isconnect = False  # 初始化数据库连接状态
         self.autoupdate = False # 初始化自动刷新状态
+        self.thread_1 = mqtt_connect_aliyun_iot_platform()
         self.graphics_scene = QGraphicsScene()
         self.graphics_scene_1 = QGraphicsScene()
         self.graphics_scene_2 = QGraphicsScene()
@@ -52,6 +171,9 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         self.radioButton_4.toggled.connect(self.Pos_curve)
         self.radioButton_5.toggled.connect(self.Pos_curve)
         self.pushButton_6.clicked.connect(self.Matrix_curve)
+        self.pushButton_10.clicked.connect(self.Vedio_image)
+        self.pushButton_9.clicked.connect(self.Vedio_image)
+        self.thread_1.start()
 
         # 创建 QTimer 定时器，每隔一定时间执行 update_data 函数
         self.timer = QTimer(self)
@@ -60,7 +182,27 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         self.timer = QTimer(self)   # 创建定时器对象
         self.timer.timeout.connect(self.Gesture)
         self.timer.start(5000)  # 设置时间间隔为5秒（单位：毫秒）
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.Vedio_timer)
+        self.timer.start(10)
+                
+    def Vedio_timer(self):
+        global decode_img
+        # 将图像转换为 Qt 可用的格式
+        height, width, channel = decode_img.shape
+        bytes_per_line = 3 * width
+        q_img = QImage(decode_img.data, width, height, bytes_per_line, QImage.Format_RGB888)
+        pixmap = QPixmap.fromImage(q_img)
+        self.label_10.setPixmap(pixmap.scaled(self.label_10.size(), aspectRatioMode=Qt.IgnoreAspectRatio, transformMode=Qt.SmoothTransformation))
 
+    def Vedio_image(self):
+        sender = self.sender
+        if sender == self.pushButton_9 :
+            self.label_10.setVisible(True)
+        elif sender == self.pushButton_10 :
+            self.label_10.clear()
+            self.label_10.setVisible(False)
+        
     def getSelectedPath(self, index):
         # 获取选中项的文本
         text = self.treeView.model().data(index)
@@ -224,7 +366,6 @@ class MyWindow(QMainWindow, Ui_MainWindow):
                     self.graphics_scene_4.addWidget(self.plot_widget_4)
                     self.graphicsView_5.setScene(self.graphics_scene_4)
 
-
     # XYZ坐标曲线
     def Pos_curve(self):
         if (self.isconnect == False) & self.autoupdate:
@@ -266,13 +407,13 @@ class MyWindow(QMainWindow, Ui_MainWindow):
             # 绘制曲线图
             self.plot_widget = pg.PlotWidget()
             # 创建三条曲线并添加到PlotWidget中
-            self.curve_pitch = self.plot_widget.plot(pitch_list, stepMode='left', antialias=False)
+            self.curve_pitch = self.plot_widget.plot(pitch_list, stepMode='left', antialias=True)
             self.pen = pg.mkPen(color='#f38b00', width=2)
             self.curve_pitch.setPen(self.pen)
-            self.curve_roll = self.plot_widget.plot(roll_list, stepMode='left', antialias=False)
+            self.curve_roll = self.plot_widget.plot(roll_list, stepMode='left', antialias=True)
             self.pen = pg.mkPen(color='#32874f', width=2)
             self.curve_roll.setPen(self.pen)
-            self.curve_yaw = self.plot_widget.plot(yaw_list, stepMode='left', antialias=False)
+            self.curve_yaw = self.plot_widget.plot(yaw_list, stepMode='left', antialias=True)
             self.pen = pg.mkPen(color='#9a86fd', width=2)
             self.curve_yaw.setPen(self.pen)
             
