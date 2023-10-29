@@ -117,45 +117,112 @@ class MyWindow(QMainWindow, Ui_MainWindow):
             # 将数据转换为列表
             self.data_list = [row[0] for row in self.graph_data]
 
-            if self.radioButton_7.isChecked() & self.radioButton_10.isChecked():  # 左上折线图
-                self.plot_widget_1 = pg.PlotWidget()
-                self.graphics_scene_1.clear()
-                self.leftup = self.plot_widget_1.plot(self.data_list)
-                self.pen = pg.mkPen(color='#f38b00', width=2)
-                self.leftup.setPen(self.pen)
-                self.plot_widget_1.setBackground('#ffffff') # 设置背景颜色
-                self.graphics_scene_1.addWidget(self.plot_widget_1)
-                self.graphicsView_2.setScene(self.graphics_scene_1)
+            if self.radioButton_7.isChecked(): 
+                if self.radioButton_10.isChecked():  # 左上折线图
+                    self.plot_widget_1 = pg.PlotWidget()
+                    self.graphics_scene_1.clear()
+                    self.leftup = self.plot_widget_1.plot(self.data_list, antialias=True)
+                    self.pen = pg.mkPen(color='#f38b00', width=2)
+                    self.leftup.setPen(self.pen)
+                    self.plot_widget_1.setBackground('#ffffff') # 设置背景颜色
+                    self.graphics_scene_1.addWidget(self.plot_widget_1)
+                    self.graphicsView_2.setScene(self.graphics_scene_1)
             
-            if self.radioButton_7.isChecked() & self.radioButton_11.isChecked():  # 右上折线图
-                self.plot_widget_2 = pg.PlotWidget()
-                self.graphics_scene_2.clear()
-                self.rightup = self.plot_widget_2.plot(self.data_list)
-                self.pen = pg.mkPen(color='#f38b00', width=2)
-                self.rightup.setPen(self.pen)
-                self.plot_widget_2.setBackground('#ffffff') # 设置背景颜色
-                self.graphics_scene_2.addWidget(self.plot_widget_2)
-                self.graphicsView_3.setScene(self.graphics_scene_2)
+                if self.radioButton_11.isChecked():  # 右上折线图
+                    self.plot_widget_2 = pg.PlotWidget()
+                    self.graphics_scene_2.clear()
+                    self.rightup = self.plot_widget_2.plot(self.data_list, antialias=True)
+                    self.pen = pg.mkPen(color='#f38b00', width=2)
+                    self.rightup.setPen(self.pen)
+                    self.plot_widget_2.setBackground('#ffffff') # 设置背景颜色
+                    self.graphics_scene_2.addWidget(self.plot_widget_2)
+                    self.graphicsView_3.setScene(self.graphics_scene_2)
             
-            if self.radioButton_7.isChecked() & self.radioButton_12.isChecked():  # 左下折线图
-                self.plot_widget_3 = pg.PlotWidget()
-                self.graphics_scene_3.clear()
-                self.leftdown = self.plot_widget_3.plot(self.data_list)
-                self.pen = pg.mkPen(color='#f38b00', width=2)
-                self.leftdown.setPen(self.pen)
-                self.plot_widget_3.setBackground('#ffffff') # 设置背景颜色
-                self.graphics_scene_3.addWidget(self.plot_widget_3)
-                self.graphicsView_4.setScene(self.graphics_scene_3)
+                if self.radioButton_12.isChecked():  # 左下折线图
+                    self.plot_widget_3 = pg.PlotWidget()
+                    self.graphics_scene_3.clear()
+                    self.leftdown = self.plot_widget_3.plot(self.data_list, antialias=True)
+                    self.pen = pg.mkPen(color='#f38b00', width=2)
+                    self.leftdown.setPen(self.pen)
+                    self.plot_widget_3.setBackground('#ffffff') # 设置背景颜色
+                    self.graphics_scene_3.addWidget(self.plot_widget_3)
+                    self.graphicsView_4.setScene(self.graphics_scene_3)
 
-            if self.radioButton_7.isChecked() & self.radioButton_13.isChecked():  # 右下折线图
-                self.plot_widget_4 = pg.PlotWidget()
-                self.graphics_scene_4.clear()
-                self.rightdown = self.plot_widget_4.plot(self.data_list)
-                self.pen = pg.mkPen(color='#f38b00', width=2)
-                self.rightdown.setPen(self.pen)
-                self.plot_widget_4.setBackground('#ffffff')
-                self.graphics_scene_4.addWidget(self.plot_widget_4)
-                self.graphicsView_5.setScene(self.graphics_scene_4)
+                if self.radioButton_13.isChecked():  # 右下折线图
+                    self.plot_widget_4 = pg.PlotWidget()
+                    self.graphics_scene_4.clear()
+                    self.rightdown = self.plot_widget_4.plot(self.data_list, antialias=True)
+                    self.pen = pg.mkPen(color='#f38b00', width=2)
+                    self.rightdown.setPen(self.pen)
+                    self.plot_widget_4.setBackground('#ffffff')
+                    self.graphics_scene_4.addWidget(self.plot_widget_4)
+                    self.graphicsView_5.setScene(self.graphics_scene_4)
+
+            elif self.radioButton_8.isChecked():
+                if self.radioButton_10.isChecked():  # 左上直方图
+                    self.plot_widget_1 = pg.PlotWidget()
+                    self.graphics_scene_1.clear()
+                    self.leftup = self.plot_widget_1.plot(self.data_list, stepMode='left', fillLevel=0, brush=(0, 0, 255, 150))
+                    self.plot_widget_1.setBackground('#ffffff') # 设置背景颜色
+                    self.graphics_scene_1.addWidget(self.plot_widget_1)
+                    self.graphicsView_2.setScene(self.graphics_scene_1)
+                
+                if self.radioButton_11.isChecked():  # 右上直方图
+                    self.plot_widget_2 = pg.PlotWidget()
+                    self.graphics_scene_2.clear()
+                    self.rightup = self.plot_widget_2.plot(self.data_list, stepMode='left', fillLevel=0, brush=(0, 0, 255, 150))
+                    self.plot_widget_2.setBackground('#ffffff')
+                    self.graphics_scene_2.addWidget(self.plot_widget_2)
+                    self.graphicsView_3.setScene(self.graphics_scene_2)
+                
+                if self.radioButton_12.isChecked():  # 左下直方图
+                    self.plot_widget_3 = pg.PlotWidget()
+                    self.graphics_scene_3.clear()
+                    self.leftdown = self.plot_widget_3.plot(self.data_list, stepMode='left', fillLevel=0, brush=(0, 0, 255, 150))
+                    self.plot_widget_3.setBackground('#ffffff')
+                    self.graphics_scene_3.addWidget(self.plot_widget_3)
+                    self.graphicsView_4.setScene(self.graphics_scene_3)
+                
+                if self.radioButton_13.isChecked():  # 右下直方图
+                    self.plot_widget_4 = pg.PlotWidget()
+                    self.graphics_scene_4.clear()
+                    self.rightdown = self.plot_widget_4.plot(self.data_list, stepMode='left', fillLevel=0, brush=(0, 0, 255, 150))
+                    self.plot_widget_4.setBackground('#ffffff')
+                    self.graphics_scene_4.addWidget(self.plot_widget_4)
+                    self.graphicsView_5.setScene(self.graphics_scene_4)
+                
+            if self.radioButton_14.isChecked():
+                if self.radioButton_10.isChecked():
+                    self.plot_widget_1 = pg.PlotWidget()
+                    self.graphics_scene_1.clear()
+                    self.leftup = self.plot_widget_1.plot(self.data_list, symbol='o', pen=None, symbolBrush='g', symbolSize=5)
+                    self.plot_widget_1.setBackground('#ffffff')
+                    self.graphics_scene_1.addWidget(self.plot_widget_1)
+                    self.graphicsView_2.setScene(self.graphics_scene_1)
+                
+                if self.radioButton_11.isChecked():
+                    self.plot_widget_2 = pg.PlotWidget()
+                    self.graphics_scene_2.clear()
+                    self.rightup = self.plot_widget_2.plot(self.data_list, symbol='o', pen=None, symbolBrush='g', symbolSize=5)
+                    self.plot_widget_2.setBackground('#ffffff')
+                    self.graphics_scene_2.addWidget(self.plot_widget_2)
+                    self.graphicsView_3.setScene(self.graphics_scene_2)
+
+                if self.radioButton_12.isChecked():
+                    self.plot_widget_3 = pg.PlotWidget()
+                    self.graphics_scene_3.clear()
+                    self.leftdown = self.plot_widget_3.plot(self.data_list, symbol='o', pen=None, symbolBrush='g', symbolSize=5)
+                    self.plot_widget_3.setBackground('#ffffff')
+                    self.graphics_scene_3.addWidget(self.plot_widget_3)
+                    self.graphicsView_4.setScene(self.graphics_scene_3)
+                
+                if self.radioButton_13.isChecked():
+                    self.plot_widget_4 = pg.PlotWidget()
+                    self.graphics_scene_4.clear()
+                    self.rightdown = self.plot_widget_4.plot(self.data_list, symbol='o', pen=None, symbolBrush='g', symbolSize=5)
+                    self.plot_widget_4.setBackground('#ffffff')
+                    self.graphics_scene_4.addWidget(self.plot_widget_4)
+                    self.graphicsView_5.setScene(self.graphics_scene_4)
 
 
     # XYZ坐标曲线

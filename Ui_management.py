@@ -767,7 +767,7 @@ class Ui_MainWindow(object):
         self.label_7.setText(_translate("MainWindow", "绘图类型："))
         self.radioButton_7.setText(_translate("MainWindow", "折线图"))
         self.radioButton_13.setText(_translate("MainWindow", "右下"))
-        self.radioButton_14.setText(_translate("MainWindow", "条形图"))
+        self.radioButton_14.setText(_translate("MainWindow", "散点图"))
         self.pushButton_8.setText(_translate("MainWindow", "定位"))
         self.pushButton_11.setText(_translate("MainWindow", "绘制轨迹"))
         self.label_11.setText(_translate("MainWindow", "经度："))
