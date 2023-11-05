@@ -5,8 +5,14 @@
 ![](GUI_icon/image.png)
 
 ## 打包命令
+打包后运行会报错找不到模型文件，需要手动将model文件复制入dist\main\_internal路径下
+### 第一版软件
 ```
-pyinstaller -w -i .\GUI_icon\main_icon.ico --add-data ".\model\little_ship.STL;." .\main.py
+pyinstaller -w -i .\GUI_icon\main_icon.ico  .\main.py
+```
+### 第二版软件
+```
+pyinstaller -w -i .\GUI_icon\main_icon.ico  .\spark.py
 ```
 
 ### 图像发送端

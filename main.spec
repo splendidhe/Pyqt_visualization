@@ -5,7 +5,7 @@ a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[('.\\model\\little_ship.STL', '.')],
+    datas=[],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
