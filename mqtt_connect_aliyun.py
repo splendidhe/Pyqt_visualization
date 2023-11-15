@@ -139,6 +139,7 @@ def encode_loop():
         if frame_count % 30 == 0:
             end_time = time.time()
             elapsed_time = end_time - start_time
+            start_time = end_time
             fps = frame_count / elapsed_time
             print("传输帧率: {:.2f} fps".format(fps) + "  压缩后：" + str(len(encoded)))
 

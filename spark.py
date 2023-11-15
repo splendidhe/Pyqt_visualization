@@ -11,123 +11,56 @@ import pyqtgraph as pg
 from Robot import *
 from Trajectory import *
 from Ui_management import Ui_MainWindow
-import hmac
-from hashlib import sha1
-import time
-from paho.mqtt.client import MQTT_LOG_INFO, MQTT_LOG_NOTICE, MQTT_LOG_WARNING, MQTT_LOG_ERR, MQTT_LOG_DEBUG
-from paho.mqtt import client as mqtt
-import json
 import random
-import threading
 import cv2
+import time
+import json
 import base64
+import numpy as np
+from paho.mqtt import client as mqtt_client
 
-# 设备证书（ProductKey、DeviceName和DeviceSecret），三元组
-productKey = 'a1YGTqzEyRl'
-deviceName = 'vedio2'
-deviceSecret = '4da59f51dde911996ac6f34544a6e013'
+broker = '124.223.201.77'
+port = 1883
+topic = "mqtt/image"
+client_id = f'python-mqtt-{random.randint(0, 100)}'
 
-# ClientId Username和 Password 签名模式下的设置方法，参考文档 https://help.aliyun.com/document_detail/73742.html?spm=a2c4g.11186623.6.614.c92e3d45d80aqG
-# MQTT - 合成connect报文中使用的 ClientID、Username、Password
-mqttClientId = deviceName + '|securemode=3,signmethod=hmacsha1|'
-mqttUsername = deviceName + '&' + productKey
-content = 'clientId' + deviceName + 'deviceName' + deviceName + 'productKey' + productKey
-mqttPassword = hmac.new(deviceSecret.encode(), content.encode(), sha1).hexdigest()
+class Image_thread(QThread):
+    image_received = pyqtSignal(QImage)
+    fps = pyqtSignal(float)
 
-# 接入的服务器地址
-regionId = 'cn-shanghai'
-# MQTT 接入点域名
-brokerUrl = productKey + '.iot-as-mqtt.' + regionId + '.aliyuncs.com'
-# Topic，post，客户端向服务器上报消息
-topic_post = '/sys/' + productKey + '/' + deviceName + '/thing/event/property/post'
-# Topic，set，服务器向客户端下发消息
-topic_set = '/sys/' + productKey + '/' + deviceName + '/thing/service/property/set'
-# 物模型名称的前缀（去除后缀的数字）
-modelName = 'image'
-# 建立mqtt连接对象
-client = mqtt.Client(mqttClientId, protocol=mqtt.MQTTv311, clean_session=True)
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.client = mqtt_client.Client(client_id)
 
-vedio_flow = ""
-decode_img = "" 
+    def on_connect(self, client, userdata, flags, rc):
+        if rc == 0:
+            print("Connected to MQTT Broker!")
+        else:
+            print("Failed to connect, return code %d\n", rc)
 
-# 下发的设置报文示例：{"method":"thing.event.property.post","params":{"image":"1234567890"}}
-# json合成上报开关状态的报文
-def json_switch_set(data):
-    switch_info = {}
-    switch_data = json.loads(json.dumps(switch_info))
-    switch_data['method'] = '/thing/event/property/post'
-    switch_data['id'] = random.randint(100000000,999999999) # 随机数即可，用于让服务器区分开报文
-    switch_status = {modelName : data}
-    switch_data['params'] = switch_status
-    return json.dumps(switch_data, ensure_ascii=False)
+    def on_message(self, client, userdata, msg):
+        print(f"Received `{str(len(msg.payload.decode()))}` from `{msg.topic}` topic")
+        parsed_data = json.loads(msg.payload.decode())
+        fps_value = parsed_data.get("fps")
+        fps_value = '{:.2f}'.format(fps_value)  # 格式化为两位小数
+        image_value = parsed_data.get("image")
+        decoded_data = base64.b64decode(image_value)
+        image = cv2.imdecode(np.frombuffer(decoded_data, np.uint8), cv2.IMREAD_COLOR)
+        # 将 BGR 转换为 RGB
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        # 将图像数据转换为 QImage 格式
+        height, width, channels = image.shape
+        bytes_per_line = channels * width
+        qimage = QImage(image.data, width, height, bytes_per_line, QImage.Format_RGB888)
+        self.image_received.emit(qimage)
+        self.fps.emit(float(fps_value))
 
-# 日志打印函数
-def on_log(client, userdata, level, buf): 
-    if level == MQTT_LOG_INFO:
-        head = 'INFO'
-    elif level == MQTT_LOG_NOTICE:
-        head = 'NOTICE'
-    elif level == MQTT_LOG_WARNING:
-        head = 'WARN'
-    elif level == MQTT_LOG_ERR:
-        head = 'ERR'
-    elif level == MQTT_LOG_DEBUG:
-        head = 'DEBUG'
-    else:
-        head = level
-    # print('%s: %s' % (head, buf))
-# MQTT成功连接到服务器的回调处理函数
-def on_connect(client, userdata, flags, rc):
-    # print('Connected with result code ' + str(rc))
-    # 与MQTT服务器连接成功，之后订阅主题
-    # client.subscribe(topic_post, qos=0)
-    client.subscribe(topic_set, qos=0)
-    # 向服务器发布测试消息
-    # client.publish(topic_post, payload='test msg', qos=0)
-
-# MQTT接收到服务器消息的回调处理函数
-def on_message(client, userdata, msg):
-    global decode_img
-    # print(msg.payload)
-    # # 解析JSON数据
-    data = json.loads(msg.payload)
-    # 提取"value"字段的值 items":{"image":{"time":1698592846892,"value"
-    value = data['items']['image']['value']
-    print(value)
-    decoded_data = base64.b64decode(value)
-    # 将二进制数据解码为图像
-    image = cv2.imdecode(np.frombuffer(decoded_data, np.uint8), cv2.IMREAD_COLOR)
-    print(decoded_data)
-    decode_img = image
-    resized = cv2.resize(image, (400, 300), interpolation=cv2.INTER_AREA)
-    cv2.imshow("Decoded Image", resized)
-    cv2.waitKey(1)
-    # cv2.destroyAllWindows()
-    # # print('recv:', msg.topic + ' ' + str(msg.payload))
-    # # print(msg.payload)
-    pass
-
-def on_disconnect(client, userdata, rc):
-    if rc != 0:
-        print('Unexpected disconnection %s' % rc)
-
-class mqtt_connect_aliyun_iot_platform(QThread):
-    client.on_log = on_log
-    client.on_connect = on_connect
-    client.on_message = on_message
-    client.on_disconnect = on_disconnect
-    client.username_pw_set(mqttUsername, mqttPassword)
-    print('clientId:', mqttClientId)
-    print('userName:', mqttUsername)
-    print('password:', mqttPassword)
-    print('brokerUrl:', brokerUrl)
-    # ssl设置，并且port=8883
-    # client.tls_set(ca_certs=None, certfile=None, keyfile=None, cert_reqs=ssl.CERT_REQUIRED, tls_version=ssl.PROTOCOL_TLS, ciphers=None)
-    try:
-        client.connect(brokerUrl, 1883, 60)
-    except:
-        print('阿里云物联网平台MQTT服务器连接错误,请检查设备证书三元组、及接入点的域名！')
-    client.loop_start()
+    def run(self):
+        self.client.on_connect = self.on_connect
+        self.client.on_message = self.on_message
+        self.client.connect(broker, port)
+        self.client.subscribe(topic)
+        self.client.loop_forever()
 
 
 # 主窗口类
@@ -135,9 +68,9 @@ class MyWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, *args): # 初始化
         super(MyWindow, self).__init__(*args)
         self.setupUi(self)  # 设置UI
+        self.parser_thread =  Image_thread()# 创建线程对象
         self.isconnect = False  # 初始化数据库连接状态
         self.autoupdate = False # 初始化自动刷新状态
-        self.thread_1 = mqtt_connect_aliyun_iot_platform()
         self.graphics_scene = QGraphicsScene()
         self.graphics_scene_1 = QGraphicsScene()
         self.graphics_scene_2 = QGraphicsScene()
@@ -145,6 +78,7 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         self.graphics_scene_4 = QGraphicsScene()        
         self.timer = QTimer()   # 创建定时器对象
         self.count = 0  # 计数器
+        self.fps_count = 0  # 计数器
         self.timer.timeout.connect(self.timeEvent)  # 将定时器的timeout信号连接到timeEvent方法上
         self.objRB = Robot()    # 创建机器人对象
         self.RB = DrawRB.GLWidget(self, self.objRB) # 创建一个GLWidget对象RB，该对象用于绘制机器人
@@ -171,9 +105,10 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         self.radioButton_4.toggled.connect(self.Pos_curve)
         self.radioButton_5.toggled.connect(self.Pos_curve)
         self.pushButton_6.clicked.connect(self.Matrix_curve)
-        self.pushButton_10.clicked.connect(self.Vedio_image)
-        self.pushButton_9.clicked.connect(self.Vedio_image)
-        self.thread_1.start()
+        self.pushButton_10.clicked.connect(self.stop_image_thread)
+        self.pushButton_9.clicked.connect(self.start_image_thread)
+        self.parser_thread.image_received.connect(self.display_image)
+        self.parser_thread.fps.connect(self.fps_update)
 
         # 创建 QTimer 定时器，每隔一定时间执行 update_data 函数
         self.timer = QTimer(self)
@@ -182,26 +117,23 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         self.timer = QTimer(self)   # 创建定时器对象
         self.timer.timeout.connect(self.Gesture)
         self.timer.start(5000)  # 设置时间间隔为5秒（单位：毫秒）
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.Vedio_timer)
-        self.timer.start(10)
-                
-    def Vedio_timer(self):
-        global decode_img
-        # 将图像转换为 Qt 可用的格式
-        height, width, channel = decode_img.shape
-        bytes_per_line = 3 * width
-        q_img = QImage(decode_img.data, width, height, bytes_per_line, QImage.Format_RGB888)
-        pixmap = QPixmap.fromImage(q_img)
-        self.label_10.setPixmap(pixmap.scaled(self.label_10.size(), aspectRatioMode=Qt.IgnoreAspectRatio, transformMode=Qt.SmoothTransformation))
 
-    def Vedio_image(self):
-        sender = self.sender
-        if sender == self.pushButton_9 :
-            self.label_10.setVisible(True)
-        elif sender == self.pushButton_10 :
-            self.label_10.clear()
-            self.label_10.setVisible(False)
+    def fps_update(self, fps):
+        self.lineEdit_4.setText(str(fps))
+
+    def start_image_thread(self):
+        if not self.parser_thread.isRunning():
+            self.parser_thread.start()
+            self.plainTextEdit.appendPlainText("Thread started")
+
+    def stop_image_thread(self):
+        if self.parser_thread.isRunning():
+            self.parser_thread.terminate()
+            self.plainTextEdit.appendPlainText("Thread stopped")    
+
+    def display_image(self, qimage):
+        pixmap = QPixmap.fromImage(qimage)
+        self.label_10.setPixmap(pixmap.scaled(self.label_10.size(), Qt.AspectRatioMode.KeepAspectRatio))
         
     def getSelectedPath(self, index):
         # 获取选中项的文本

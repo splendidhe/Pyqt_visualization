@@ -1973,7 +1973,7 @@
              </size>
             </property>
             <property name="styleSheet">
-             <string notr="true">border-image: url(:/background/nural_net.png);</string>
+             <string notr="true"/>
             </property>
            </widget>
           </item>
@@ -2199,10 +2199,13 @@
              </font>
             </property>
             <property name="styleSheet">
-             <string notr="true">border-image: url(:/background/nural_net.png);</string>
+             <string notr="true"/>
             </property>
             <property name="text">
              <string/>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
             </property>
            </widget>
           </item>
