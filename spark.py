@@ -298,7 +298,7 @@ class MyWindow(QMainWindow, Ui_MainWindow):
                     self.graphics_scene_4.addWidget(self.plot_widget_4)
                     self.graphicsView_5.setScene(self.graphics_scene_4)
 
-    # XYZ坐标曲线
+    # 模型姿态曲线
     def Pos_curve(self):
         if (self.isconnect == False) & self.autoupdate:
             self.isconnect = True  # 设置数据库连接状态
@@ -317,20 +317,20 @@ class MyWindow(QMainWindow, Ui_MainWindow):
             )
             self.cursor = self.conn.cursor() # 生成游标对象 cursor
             # 执行查询语句
-            self.query = "SELECT pitch FROM ship_state LIMIT 100"
+            self.query = "SELECT pitch FROM ship_state LIMIT 150"
             self.cursor.execute(self.query)
             self.graph_data = self.cursor.fetchall()
             # 将数据转换为列表
             pitch_list = [row[0] for row in self.graph_data]
             # 执行查询语句
             self.cursor = self.conn.cursor()
-            self.query = "SELECT roll FROM ship_state LIMIT 100"
+            self.query = "SELECT roll FROM ship_state LIMIT 150"
             self.cursor.execute(self.query)
             self.graph_data = self.cursor.fetchall()
             roll_list = [row[0] for row in self.graph_data]
             # 执行查询语句
             self.cursor = self.conn.cursor()
-            self.query = "SELECT yaw FROM ship_state LIMIT 100"
+            self.query = "SELECT yaw FROM ship_state LIMIT 150"
             self.cursor.execute(self.query)
             self.graph_data = self.cursor.fetchall()
             yaw_list = [row[0] for row in self.graph_data]
